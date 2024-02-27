@@ -14,6 +14,7 @@ export default function DetailsScreen({route}) {
   let {item} = route.params;
   const [loading, setLoading] = useState(false);
   const [details, setDetails] = useState();
+  const [reviews, setReviews] = useState([]);
 
   useEffect(() => {
     _apiGetMovieDetails();
@@ -28,8 +29,25 @@ export default function DetailsScreen({route}) {
       );
       setLoading(false);
       if (status == 200) {
-        console.log('=>details: ', data);
         setDetails(data);
+        _apiReviews();
+      }
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    }
+  }
+
+  async function _apiReviews() {
+    try {
+      setLoading(true);
+      const {data, status} = await axiosClient.get(
+        `movie/${item?.id}/reviews?language=en-US&page=1`,
+        _getAxiosHeaders(),
+      );
+      setLoading(false);
+      if (status == 200) {
+        setReviews(data?.results);
       }
     } catch (error) {
       console.log(error);
@@ -124,6 +142,7 @@ export default function DetailsScreen({route}) {
                 fontFamily: 'Poppins-SemiBold',
                 color: 'black',
                 marginTop: 10,
+                fontSize: 17,
               }}>
               Overview
             </Text>
@@ -135,6 +154,68 @@ export default function DetailsScreen({route}) {
               }}>
               {details?.overview}
             </Text>
+          </View>
+          <View>
+            <Text
+              style={{
+                borderColor: 'black',
+                includeFontPadding: false,
+                fontFamily: 'Poppins-SemiBold',
+                color: 'black',
+                marginTop: 10,
+                marginBottom: 10,
+                fontSize: 17,
+              }}>
+              Reviews
+            </Text>
+            {reviews.map(item => {
+              return (
+                <View
+                  key={item?.id}
+                  style={{
+                    backgroundColor: 'white',
+                    marginBottom: 5,
+                    padding: 10,
+                    borderRadius: 10,
+                  }}>
+                  <View style={{flexDirection: 'row'}}>
+                    <Image
+                      style={{width: 50, height: 50, borderRadius: 25}}
+                      source={require('../../assets/images/upload.png')}
+                    />
+                    <View
+                      style={{
+                        marginLeft: 10,
+                      }}>
+                      <Text
+                        style={{
+                          borderColor: 'black',
+                          includeFontPadding: false,
+                          fontFamily: 'Poppins-SemiBold',
+                          color: 'black',
+                        }}>
+                        {item?.author}
+                      </Text>
+                      <Text
+                        style={{
+                          includeFontPadding: false,
+                          fontFamily: 'Poppins-Regular',
+                        }}>
+                        {item?.updated_at}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text
+                    style={{
+                      includeFontPadding: false,
+                      fontFamily: 'Poppins-Regular',
+                      marginTop: 15,
+                    }}>
+                    {item?.content.slice(0, 50)}...
+                  </Text>
+                </View>
+              );
+            })}
           </View>
         </View>
       </ScrollView>
